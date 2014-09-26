@@ -31,3 +31,5 @@ group :development do
   gem 'byebug'
   gem 'awesome_print'#, :require => 'ap'
 end
+
+gem 'faye'

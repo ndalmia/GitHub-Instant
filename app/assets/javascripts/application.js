@@ -14,3 +14,22 @@
 //= require jquery_ujs
 //= require turbolinks
 //= require_tree .
+
+$(function() {
+  var faye = new Faye.Client(Figaro.env['faye_url']);
+});
+
+var subscribe_to_channel = function(channel) {
+  faye.subscribe(channel, function (data) {
+  	if(data == "PROCESSED") {
+  		location.reload;
+  	}
+  });
+}
+
+$(document).ready(function () {
+	if(location.pathname != "/") {
+		var channel = location.pathname;
+		subscribe_to_channel(channel)
+	}
+}
