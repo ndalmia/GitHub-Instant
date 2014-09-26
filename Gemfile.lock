@@ -1,6 +1,9 @@
 GEM
   remote: https://rubygems.org/
   specs:
+    acl_service (0.0.5)
+      httparty
+      rails (~> 4.0.2)
     actionmailer (4.0.5)
       actionpack (= 4.0.5)
       mail (~> 2.5.4)
@@ -38,7 +41,7 @@ GEM
       erubis (>= 2.6.6)
       rack (>= 0.9.0)
     builder (3.1.4)
-    byebug (3.4.0)
+    byebug (3.4.2)
       columnize (~> 0.8)
       debugger-linecache (~> 1.2)
       slop (~> 3.6)
@@ -85,6 +88,9 @@ GEM
     hike (1.2.3)
     hirb (0.7.2)
     http_parser.rb (0.6.0)
+    httparty (0.13.1)
+      json (~> 1.8)
+      multi_xml (>= 0.5.2)
     i18n (0.6.11)
     json (1.8.1)
     mail (2.5.4)
@@ -95,6 +101,7 @@ GEM
     minitest (4.7.5)
     mono_logger (1.1.0)
     multi_json (1.10.1)
+    multi_xml (0.5.5)
     multipart-post (2.0.0)
     pg (0.17.1)
     polyglot (0.3.5)
@@ -107,6 +114,7 @@ GEM
     rack (1.5.2)
     rack-protection (1.5.3)
       rack
+    rack-ssl-enforcer (0.2.8)
     rack-test (0.6.2)
       rack (>= 1.0)
     rails (4.0.5)
@@ -192,6 +200,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  acl_service (= 0.0.5)
   activerecord-import (>= 0.4.0)
   activerecord-postgis-adapter
   awesome_print
@@ -201,9 +210,11 @@ DEPENDENCIES
   faye
   figaro (= 0.7.0)
   hirb
+  httparty
   pg
   pry (~> 0.9.12.6)
   pry-rails
+  rack-ssl-enforcer
   rails (= 4.0.5)
   rails-erd
   redis
