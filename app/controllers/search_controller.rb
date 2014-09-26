@@ -45,6 +45,6 @@ class SearchController < ApplicationController
   end
 
   def default_client
-	Elasticsearch::Client.new(hosts: [ES_URL])
+	 Elasticsearch::Client.new(hosts: [ES_URL])
   end
 end

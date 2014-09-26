@@ -13,10 +13,10 @@ require 'resque-queue-priority-server'
   mount Resque::Server.new, :at => "/resque"
 
   
+  get "/:repo_url" => 'search#index'
   get "functions/" => 'search#get_functions'
   get "show/" => 'search#show'
   get "search/" => 'search#search'
-  get "/:google_id" => 'search#index'
 
   get "*path"   => redirect("404.html")
   post "*path"  => redirect("404.html")
