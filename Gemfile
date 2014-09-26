@@ -1,4 +1,5 @@
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
+source 'https://rubygems.org'
 gem 'rails', '4.0.5'
 
 #My custom gems. 
