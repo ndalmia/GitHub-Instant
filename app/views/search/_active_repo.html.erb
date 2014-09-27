@@ -37,11 +37,13 @@ function input_cb(e) {
   // backspace
   console.log(input.val());
   if (e.keyCode === 8) {
-    if ($('.main-input-box').hasClass('function-search') && input.val().length <= 1) {
+    if ($('.main-input-box').hasClass('function-search') && input.val().length < 1) {
       switch_to_type('file');
     }
   }
 }
+
+
 
 $(document).ready(function(){ 
   input.on('keydown', input_cb);
@@ -53,43 +55,66 @@ $(document).ready(function(){
  	$( "#query" ).autocomplete({
       source: function( request, response ) {
         var ac_data = new Array();
-        $.ajax({
-          url: "<%= files_path %>",
-          dataType: "json",
-          data: {
-            query: request.term,
-            repo : "<%= params[:repo] %>"
-          },
-          success: function( data ) {
-          	for(var i=0; i<data.length; i++){
-          		ac_data[i] = {};
-          		ac_data[i].name = data[i].filename; 
-          		ac_data[i].value = "<font size='2px'><b>"+data[i].filename+"</b>"+"<br>"+data[i].path+"</font>"; 
-          		ac_data[i].body_preview = data[i].body_preview;
-          		ac_data[i].path = data[i].path;
-          	}
-            response( ac_data );
-            
+        if ($('.main-input-box').hasClass('function-search')) {
+          for(var i=0; i<function_index.length; i++){
+            if (function_index[i].function_name.toLowerCase().indexOf(request.term.toLowerCase()) > -1) {
+              
+              var data = {};
+              data.value = function_index[i].function_name; 
+              data.line_number = function_index[i].line_number; 
+              ac_data.push(data);
+            }
+            // ac_data[i].value = "<font size='2px'><b>"+data[i].filename+"</b>"+"<br>"+data[i].path+"</font>"; 
+            // ac_data[i].body_preview = data[i].body_preview;
+            // ac_data[i].path = data[i].path;
           }
-        });
+          response(ac_data)
+        } else {
+          $.ajax({
+            url: "<%= files_path %>",
+            dataType: "json",
+            data: {
+              query: request.term,
+              repo : "<%= params[:repo] %>"
+            },
+            success: function( data ) {
+            	for(var i=0; i<data.length; i++){
+            		ac_data[i] = {};
+            		ac_data[i].name = data[i].filename; 
+            		ac_data[i].value = "<font size='2px'><b>"+data[i].filename+"</b>"+"<br>"+data[i].path+"</font>"; 
+            		ac_data[i].body_preview = data[i].body_preview;
+            		ac_data[i].path = data[i].path;
+            	}
+              response( ac_data );
+              
+            }
+          });
+        }
       },
       minLength: 3,
       // full file /file
       select: function( event, ui ) {
-        $.ajax({
-          url: "<%= file_path %>",
-          dataType: "json",
-          data: {
-            file: ui.item.path,
-            repo : "<%= params[:repo] %>"
-          },
-          success: function( data ) {
-            $(".body-preview").html(data[0].body);
-            $(".preview-head").html(ui.item.path);
-            switch_to_type('function', ui.item.name);
-          }
-        });
-        ui.item.label = ui.item.name;
+        if ($('.main-input-box').hasClass('function-search')) {
+          console.log(arguments);
+          var func_scroll_height = $('span#line-'+ui.item.line_number).offset().top
+          $(window).scrollTop(func_scroll_height);        
+        } else {
+          $.ajax({
+            url: "<%= file_path %>",
+            dataType: "json",
+            data: {
+              file: ui.item.path,
+              repo : "<%= params[:repo] %>"
+            },
+            success: function( data ) {
+              $(".body-preview").html(data[0].body);
+              $(".preview-head").html(ui.item.path);
+              switch_to_type('function', ui.item.name);
+              window.function_index = data[0].functions;
+            }
+          });
+          ui.item.label = ui.item.name;
+        }
       },
       focus: function (event, ui) {
         	//  		alert(ui.item.label);
