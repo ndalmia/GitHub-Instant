@@ -21,6 +21,7 @@ $(function() {
 
 var subscribe_to_channel = function(channel) {
   faye.subscribe(channel, function (data) {
+    alert(data);
   	if(data == "PROCESSED") {
   		location.reload;
   	}
