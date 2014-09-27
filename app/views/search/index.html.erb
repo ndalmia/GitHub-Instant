@@ -1,5 +1,9 @@
-<% if @status == "ACTIVE" %>
-  <%= render 'search/active_repo' %>
+<% if params[:repo] %> 
+  <% if @status == "ACTIVE" %>
+    <%= render 'search/active_repo' %>
+  <% else %>
+    <%= render 'search/inactive_repo' %>
+  <% end %>
 <% else %>
-  <%= render 'search/inactive_repo' %>
+  <%= render 'home_page' %>
 <% end %>
