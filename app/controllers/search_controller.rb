@@ -100,7 +100,14 @@ class SearchController < ApplicationController
          "function_name", "line_number"
         ]
     }
-    render :json => query_es(query)
+    results = JSON.parse(query_es(query))
+    response = []
+    results["hits"]["hits"].each do |hit|
+      function_name = hit["fields"]["function_name"].first
+      line_number = hit["fields"]["line_number"].first
+      response.push({function_name: function_name, line_number: line_number})
+    end
+    render :json => response
   end
 
   def files
