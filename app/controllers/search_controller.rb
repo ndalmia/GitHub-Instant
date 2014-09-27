@@ -105,7 +105,6 @@ class SearchController < ApplicationController
 
   def functions
     repo_url = params[:repo]
-    file = params[:file]
     query = params[:query]
     query =
     {
@@ -122,11 +121,6 @@ class SearchController < ApplicationController
               "filters"=> [
                   {
                       "term"=>{
-                          "path"=> file
-                      }
-                  },
-                  {
-                      "term"=>{
                           "repo_url"=> repo_url
                       }
                   }
@@ -134,7 +128,7 @@ class SearchController < ApplicationController
             }
         },
        "fields"=> [
-         "function_name", "line_number"
+         "function_name", "line_number", "path", "repo_url"
         ]
     }
     results = JSON.parse(query_es(query))
@@ -148,42 +142,46 @@ class SearchController < ApplicationController
   end
 
   def files
-    repo_url = params[:repo]
-    query = params[:query]
-    query =
-    {
-        "query"=> {
-            "match"=> {
-               "path"=> {
-                   "query"=> query,
-                    "operator"=> "and"
-               }
-            }
-        },
-         "filter"=> {
-             "and"=> {
-                "filters"=> [
-                    {
-                        "term"=>{
-                            "repo_url"=> repo_url
-                        }
-                    }
-                  ]
+    if params[:query].starts_with('@')
+      functions
+    else
+      repo_url = params[:repo]
+      query = params[:query]
+      query =
+      {
+          "query"=> {
+              "match"=> {
+                 "path"=> {
+                     "query"=> query,
+                      "operator"=> "and"
+                 }
               }
           },
-        "fields"=> [
-           "name","path","body_preview"
-          ]
-    }
-    results = JSON.parse(query_es(query))
-    response = []
-    results["hits"]["hits"].each do |hit|
-      body_preview = hit["fields"]["body_preview"].first
-      path = hit["fields"]["path"].first
-      filename = hit["fields"]["name"].first
-      response.push({body_preview: body_preview, path: path, filename: filename})
+           "filter"=> {
+               "and"=> {
+                  "filters"=> [
+                      {
+                          "term"=>{
+                              "repo_url"=> repo_url
+                          }
+                      }
+                    ]
+                }
+            },
+          "fields"=> [
+             "name","path","body_preview"
+            ]
+      }
+      results = JSON.parse(query_es(query))
+      response = []
+      results["hits"]["hits"].each do |hit|
+        body_preview = hit["fields"]["body_preview"].first
+        path = hit["fields"]["path"].first
+        filename = hit["fields"]["name"].first
+        response.push({body_preview: body_preview, path: path, filename: filename})
+      end
+      render :json => response
     end
-    render :json => response
   end
 
   private
