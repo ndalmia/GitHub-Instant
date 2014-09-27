@@ -6,16 +6,24 @@ class SearchController < ApplicationController
     repo_url = params[:repo]
     repo = Repo.where(:url => repo_url)
 
-    if repo.first
-      case repo.first.status
-      when "INACTIVE"
-        @status = "INACTIVE"
-      when "ACTIVE"
-        @status = "ACTIVE"
-      end
+    url = "https://github.com/"+repo_url
+    uri = URI.parse(url)
+    response = Net::HTTP.get(uri)
+    if response == "{\"error\":\"Not Found\"}"
+      @error = "Repo does not exist"
+      params[:repo] = nil
     else
-      Resque.enqueue(ESIndexer, repo_url)
-      @status = "INACTIVE"
+      if repo.first
+        case repo.first.status
+        when "INACTIVE"
+          @status = "INACTIVE"
+        when "ACTIVE"
+          @status = "ACTIVE"
+        end
+      else
+        Resque.enqueue(ESIndexer, repo_url)
+        @status = "INACTIVE"
+      end
     end
   end
 
