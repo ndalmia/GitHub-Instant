@@ -4,12 +4,13 @@ class SearchController < ApplicationController
 
   def index
     repo_url = params[:repo]
-    if repo_url.include? "github.com"
-      uri = URI::parse('http://stackoverflow.com//questions/ask')
-      repo_url = uri.path
+    if repo_url 
+    	if repo_url.include? "github.com"
+      		uri = URI::parse(repo_url)
+      		repo_url = uri.path
+		end
+    	repo_url = repo_url[1..-1] if repo_url[0] == '/'
     end
-
-    repo_url = repo_url[1..-1] if repo_url[0] == '/'
 
     repo = Repo.where(:url => repo_url)
 
@@ -37,6 +38,14 @@ class SearchController < ApplicationController
 
   def file
     repo_url = params[:repo]
+     repo_url = params[:repo]
+    if repo_url 
+    	if repo_url.include? "github.com"
+      		uri = URI::parse(repo_url)
+      		repo_url = uri.path
+		end
+    	repo_url = repo_url[1..-1] if repo_url[0] == '/'
+    end
     file = params[:file]
     query = 
     {
@@ -149,6 +158,14 @@ class SearchController < ApplicationController
 
   def files
     repo_url = params[:repo]
+     repo_url = params[:repo]
+    if repo_url 
+    	if repo_url.include? "github.com"
+      		uri = URI::parse(repo_url)
+      		repo_url = uri.path
+		end
+    	repo_url = repo_url[1..-1] if repo_url[0] == '/'
+    end
     query = params[:query]
     query =
     {
