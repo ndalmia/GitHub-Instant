@@ -1,5 +1,6 @@
 class ESIndexer
     include SearchHelper
+    include ApplicationHelper
     @queue = :es_upload_queue
     PRIVATE_PATH = "#{Rails.root}/private"
     PYTHON_INDEXER_FILE = Rails.root.join('private', 'indexer.py')
@@ -25,6 +26,7 @@ class ESIndexer
             raise "ERROR #{indexer_command}"
         end
         FileUtils.rm_rf(directory)
+        broadcast("/"+repo)
     end
 end
 
