@@ -56,21 +56,21 @@ namespace :one_timers do
 					    "analysis" => {
 					      "analyzer" => {
 					        "str_search_analyzer" => {
-					          "tokenizer" => "standard",
-					          "filter" => ["standard", "lowercase", "mynGram"]
+					          "tokenizer" => "whitespace",
+					          "filter" => ["lowercase","word_delimiter"]
 					        },
 
 					        "str_index_analyzer" => {
-					          "tokenizer" => "standard",
-					          "filter" => ["lowercase", "mynGram"]
+					          "tokenizer" => "keyword",
+					          "filter" => ["lowercase","word_delimiter","substring"]
 					        }
 					      },
 
 					      "filter" => {
-					        "mynGram" => {
+					        "substring" => {
 					          "type" => "nGram",
 					          "min_gram" => 2,
-					          "max_gram"  => 50
+					          "max_gram"  => 15
 					        }
 					      }
 				    	}
@@ -80,7 +80,7 @@ namespace :one_timers do
   end
 
 	def get_es_client
-		address = Figaro.env['es_url']
+		address = "http://"+Figaro.env['es_host']+":"+Figaro.env['es_port']
 		Elasticsearch::Client.new(hosts: [address])
   end
 

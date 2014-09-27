@@ -15,8 +15,8 @@ ELASTICSEARCH_URL=sys.argv[4]
 REPO=sys.argv[5]
 PRIVATE_PATH=sys.argv[6]
 
-PREVIEW_SIZE = 2000
-FULL_SIZE = 10000
+PREVIEW_SIZE = 50
+FULL_SIZE = 20000
 
 es = Elasticsearch([ELASTICSEARCH_URL])
 
@@ -34,15 +34,20 @@ def get_paths(path, repo_url):
 			full_path_name = os.path.join(full_root, name)
 			with open(full_path_name, 'r') as f:
 				read_data = f.read(FULL_SIZE)
+				preview = ""
+				content = ""
 				line_number = 0
 				f.seek(0)
 				for line in f:
+					if line_number <= PREVIEW_SIZE:
+						preview += line + "<br>"
+					content += line + "<br>"
 					line_number += 1
 					function_name = find_function(line)
 					if function_name:
 						body2 = {"path": path_name, "function_name": function_name, "line_number":line_number, "repo_url" : repo_url}
 						es.index(index=INDEX_NAME, doc_type=TYPE_NAME_FUNC, body=body2)
-			body = {"path":path_name, "name":name, "body":read_data, "body_preview": read_data[:PREVIEW_SIZE], "repo_url" : repo_url }
+			body = {"path":path_name, "name":name, "body":content, "body_preview": preview, "repo_url" : repo_url }
 			es.index(index=INDEX_NAME, doc_type=TYPE_NAME, body=body)
 
 # def read_in_chunks(file_object, chunk_size=1024):

@@ -52,10 +52,18 @@ class SearchController < ApplicationController
           }
       },
       "fields"=> [
-         "name","path","body_preview"
+         "name","path","body"
         ]
     }
-    render :json => query_es(query)
+    results = JSON.parse(query_es(query))
+    response = []
+    results["hits"]["hits"].each do |hit|
+      body = hit["fields"]["body"].first
+      path = hit["fields"]["path"].first
+      filename = hit["fields"]["name"].first
+      response.push({body: body, path: path, filename: filename})
+    end
+    render :json => response
   end
 
   def functions
@@ -123,7 +131,15 @@ class SearchController < ApplicationController
            "name","path","body_preview"
           ]
     }
-    render :json => query_es(query)
+    results = JSON.parse(query_es(query))
+    response = []
+    results["hits"]["hits"].each do |hit|
+      body_preview = hit["fields"]["body_preview"].first
+      path = hit["fields"]["path"].first
+      filename = hit["fields"]["name"].first
+      response.push({body_preview: body_preview, path: path, filename: filename})
+    end
+    render :json => response
   end
 
   private

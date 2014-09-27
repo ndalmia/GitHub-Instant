@@ -1,6 +1,6 @@
 class ESIndexer
     include SearchHelper
-    include ApplicationHelper
+    extend ApplicationHelper
     @queue = :es_upload_queue
     PRIVATE_PATH = "#{Rails.root}/private"
     PYTHON_INDEXER_FILE = Rails.root.join('private', 'indexer.py')
