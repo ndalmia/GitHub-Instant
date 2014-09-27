@@ -9,5 +9,24 @@
  * compiled file, but it's generally better to create a new file per style scope.
  *
  *= require_self
+ *= require jquery-ui
  *= require_tree .
  */
+body {margin:0;font: 13px/1.4 Helvetica, arial, freesans, clean, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";}
+.body {width:100%;}
+.container {margin: 0 auto;width:980px;}
+h1 {text-align: center;padding: 0;margin: 0;}
+.main-input-box {width:600px; margin: 0 auto;}
+.main-input {width: 550px;padding: 10px;border-radius: 3px;border:1px solid #aaa; font-size: 18px;}
+.main-search-btn {width:220px;margin:0 auto;margin-top: 100px;}
+.univ-btn {width:220px;padding: 8px; font-size: 16px;background-color: cornflowerblue;border-width:0px;border-radius:2px;color:white;cursor: pointer;}
+.univ-btn:hover, .univ-btn:focus {}
+.preview-head {padding: 5px 10px;
+text-shadow: 0 1px 0 #fff;
+border-bottom: 1px solid #d8d8d8;
+background-color: #f7f7f7;
+border-top-left-radius: 4px;
+border-top-right-radius: 4px;
+border: 1px solid #ddd;
+border-bottom :none;}
+.body-preview{font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;font-size: 12px;color:#333;white-space: pre;background: #ffffff;padding: 20px;margin-bottom: 15px;border: 1px solid #ddd;zborder-radius: 3px;}

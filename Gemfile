@@ -36,6 +36,7 @@ group :development do
 end
 
 gem 'faye'
-gem 'jquery-rails'
+gem 'jquery-rails', '~> 2.3.0'
 gem 'turbolinks'
 gem 'byebug'
+gem 'jquery-ui-rails'
