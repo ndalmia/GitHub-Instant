@@ -114,7 +114,14 @@ class SearchController < ApplicationController
 
   def functions
     repo_url = params[:repo]
-    file = params[:file]
+    repo_url = params[:repo]
+    if repo_url 
+       if repo_url.include? "github.com"
+          uri = URI::parse(repo_url)
+          repo_url = uri.path
+        end
+       repo_url = repo_url[1..-1] if repo_url[0] == '/'
+    end
     query = params[:query]
     query =
     {
@@ -131,11 +138,6 @@ class SearchController < ApplicationController
               "filters"=> [
                   {
                       "term"=>{
-                          "path"=> file
-                      }
-                  },
-                  {
-                      "term"=>{
                           "repo_url"=> repo_url
                       }
                   }
@@ -143,7 +145,7 @@ class SearchController < ApplicationController
             }
         },
        "fields"=> [
-         "function_name", "line_number"
+         "function_name", "line_number", "path", "repo_url"
         ]
     }
     results = JSON.parse(query_es(query))
@@ -151,56 +153,61 @@ class SearchController < ApplicationController
     results["hits"]["hits"].each do |hit|
       function_name = hit["fields"]["function_name"].first
       line_number = hit["fields"]["line_number"].first
-      response.push({function_name: function_name, line_number: line_number})
+      path = hit["fields"]["path"].first
+      response.push({filename: function_name, path: path})
     end
     render :json => response
   end
 
   def files
-    repo_url = params[:repo]
-     repo_url = params[:repo]
-    if repo_url 
-    	if repo_url.include? "github.com"
-      		uri = URI::parse(repo_url)
-      		repo_url = uri.path
-		end
-    	repo_url = repo_url[1..-1] if repo_url[0] == '/'
-    end
-    query = params[:query]
-    query =
-    {
-        "query"=> {
-            "match"=> {
-               "path"=> {
-                   "query"=> query,
-                    "operator"=> "and"
-               }
-            }
-        },
-         "filter"=> {
-             "and"=> {
-                "filters"=> [
-                    {
-                        "term"=>{
-                            "repo_url"=> repo_url
-                        }
-                    }
-                  ]
+    if params[:query][0] == '@'
+      functions
+    else
+      repo_url = params[:repo]
+      repo_url = params[:repo]
+      if repo_url 
+    	   if repo_url.include? "github.com"
+      		  uri = URI::parse(repo_url)
+      		  repo_url = uri.path
+		      end
+    	   repo_url = repo_url[1..-1] if repo_url[0] == '/'
+      end
+      query = params[:query]
+      query =
+      {
+          "query"=> {
+              "match"=> {
+                 "path"=> {
+                     "query"=> query,
+                      "operator"=> "and"
+                 }
               }
           },
-        "fields"=> [
-           "name","path","body_preview"
-          ]
-    }
-    results = JSON.parse(query_es(query))
-    response = []
-    results["hits"]["hits"].each do |hit|
-      body_preview = hit["fields"]["body_preview"].first
-      path = hit["fields"]["path"].first
-      filename = hit["fields"]["name"].first
-      response.push({body_preview: body_preview, path: path, filename: filename})
+           "filter"=> {
+               "and"=> {
+                  "filters"=> [
+                      {
+                          "term"=>{
+                              "repo_url"=> repo_url
+                          }
+                      }
+                    ]
+                }
+            },
+          "fields"=> [
+             "name","path","body_preview"
+            ]
+      }
+      results = JSON.parse(query_es(query))
+      response = []
+      results["hits"]["hits"].each do |hit|
+        body_preview = hit["fields"]["body_preview"].first
+        path = hit["fields"]["path"].first
+        filename = hit["fields"]["name"].first
+        response.push({body_preview: body_preview, path: path, filename: filename})
+      end
+      render :json => response
     end
-    render :json => response
   end
 
   private

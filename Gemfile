@@ -6,7 +6,6 @@ end
 
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem 'pg'
 gem 'rails', '4.0.5'
 gem 'httparty'
 gem 'rack-ssl-enforcer'
@@ -43,7 +42,6 @@ gem 'faye'
 gem 'jquery-rails', '~> 2.3.0'
 gem 'turbolinks'
 
-gem 'byebug'
 gem 'jquery-ui-rails'
 
 
