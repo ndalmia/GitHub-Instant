@@ -22,96 +22,108 @@ class SearchController < ApplicationController
   def file
     repo_url = params[:repo]
     file = params[:file]
-    c = default_client
-    @results = c.search index: ES_INDEX,
-                type: ES_TYPE,
-                body: {
-                  query: {
-                      match: {
-                         "path.untouched": {
-                             query: query,
-                              operator: "and"
-                         }
-                      }
-                  }
-                  ,fields: [
-                     "name","path","body_preview"
-                    ]
-              }
+    query = 
+    {
+      "query"=>{
+          "match" => {
+             "path.untouched" => {
+                 "query" => file,
+                  "operator" => "and"
+             }
+          }
+      },
+     "filter"=> {
+         "and"=> {
+            "filters"=> [
+                {
+                    "term"=>{
+                        "repo_url"=> repo_url
+                    }
+                }
+              ]
+          }
+      },
+      "fields"=> [
+         "name","path","body_preview"
+        ]
+    }
+    render :json => query_es(query)
   end
 
   def functions
     repo_url = params[:repo]
     file = params[:file]
     query = params[:query]
-    c =  default_client
-    @results = c.search index: ES_INDEX,
-                type: ES_TYPE,
-                body: {
-                   "query" => {
-                       "match"=> {
-                          "function_name"=> {
-                              "query" :query,
-                               "operator" => "and"
-                          }
-                       }
-                   },
-                   "filter"=> {
-                       "and"=> {
-                          "filters"=> [
-                              {
-                                  "term"=>{
-                                      "path"=> file
-                                  }
-                              },
-                              {
-                                  "term"=>{
-                                      "repo_url"=> repo_url
-                                  }
-                              }
-                            ]
-                        }
-                    }
-                  ,fields: [
-                     "function_name", "line_number"
-                    ]
-                }
+    query =
+    {
+       "query" => {
+           "match"=> {
+              "function_name"=> {
+                  "query" =>query,
+                   "operator" => "and"
+              }
+           }
+       },
+       "filter"=> {
+           "and"=> {
+              "filters"=> [
+                  {
+                      "term"=>{
+                          "path"=> file
+                      }
+                  },
+                  {
+                      "term"=>{
+                          "repo_url"=> repo_url
+                      }
+                  }
+                ]
+            }
+        },
+       "fields"=> [
+         "function_name", "line_number"
+        ]
+    }
+    render :json => query_es(query)
   end
 
   def files
-    repo_url = params[:repo_url]
+    repo_url = params[:repo]
     query = params[:query]
-    c =  default_client
-    @results = c.search index: ES_INDEX,
-                type: ES_TYPE,
-                body: {
-                  query: {
-                      match: {
-                         path: {
-                             query: query,
-                              operator: "and"
-                         }
-                      }
-                  }
-                   "filter"=> {
-                       "and"=> {
-                          "filters"=> [
-                              {
-                                  "term"=>{
-                                      "repo_url"=> repo_url
-                                  }
-                              }
-                            ]
+    query =
+    {
+        "query"=> {
+            "match"=> {
+               "path"=> {
+                   "query"=> query,
+                    "operator"=> "and"
+               }
+            }
+        },
+         "filter"=> {
+             "and"=> {
+                "filters"=> [
+                    {
+                        "term"=>{
+                            "repo_url"=> repo_url
                         }
                     }
-                  ,fields: [
-                     "name","path","body_preview"
-                    ]
-                } 
+                  ]
+              }
+          },
+        "fields"=> [
+           "name","path","body_preview"
+          ]
+    }
+    render :json => query_es(query)
   end
 
   private
-  def default_client
-	 Elasticsearch::Client.new(hosts: [Figaro.env['es_url']])
+  def query_es(query)
+    uri = URI.parse("http://"+Figaro.env["es_host"]+":"+Figaro.env["es_port"] + "/"+ES_INDEX+"/_search")
+    http = Net::HTTP.new(Figaro.env["es_host"],Figaro.env["es_port"])
+    Rails.logger.info query
+    response = http.post(uri.path,query.to_json)
+    response.body
   end
 end

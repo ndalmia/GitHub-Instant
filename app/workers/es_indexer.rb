@@ -6,7 +6,7 @@ class ESIndexer
     INDEX_NAME = "github"
     TYPE_NAME = "repo"
     TYPE_NAME_FUNC = "function"
-    ELASTICSEARCH_URL = Figaro.env["es_url"]
+    ELASTICSEARCH_URL = "#{Figaro.env["es_host"]}:#{Figaro.env["es_port"]}"
     
     def self.es_details
         index = "github"

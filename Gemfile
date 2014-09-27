@@ -36,3 +36,6 @@ group :development do
 end
 
 gem 'faye'
+gem 'jquery-rails'
+gem 'turbolinks'
+gem 'byebug'
