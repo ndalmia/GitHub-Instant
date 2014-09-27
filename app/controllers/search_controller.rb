@@ -62,7 +62,36 @@ class SearchController < ApplicationController
       body = hit["fields"]["body"].first
       path = hit["fields"]["path"].first
       filename = hit["fields"]["name"].first
-      response.push({body: body, path: path, filename: filename})
+      functions = []
+      query =
+      {
+         "filter"=> {
+             "and"=> {
+                "filters"=> [
+                    {
+                        "term"=>{
+                            "path"=> file
+                        }
+                    },
+                    {
+                        "term"=>{
+                            "repo_url"=> repo_url
+                        }
+                    }
+                  ]
+              }
+          },
+         "fields"=> [
+           "function_name", "line_number"
+          ]
+      }
+      function_results = JSON.parse(query_es(query))
+      function_results["hits"]["hits"].each do |function_hit|
+        function_name = function_hit["fields"]["function_name"].first
+        line_number = function_hit["fields"]["line_number"].first
+        functions.push({function_name: function_name, line_number: line_number})
+      end
+      response.push({body: body, path: path, filename: filename, functions: functions})
     end
     render :json => response
   end
