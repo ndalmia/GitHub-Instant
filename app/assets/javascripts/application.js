@@ -36,14 +36,14 @@ $(document).ready(function () {
   var subscribe_to_channel = function(channel) {
     faye.subscribe(channel, function (data) {
       if(data == "PROCESSED") {
-        location.reload;
+        location.reload();
       }
     });
   }
   
   if(location.pathname == "/") {
    params = getQueryParams();
-    var channel = "/"+params.repo;
+    var channel = "/"+params.repo.split('/')[3] +"/" +params.repo.split('/')[4];
     subscribe_to_channel(channel);
   }
 });
