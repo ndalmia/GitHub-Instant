@@ -13,8 +13,8 @@ class SearchController < ApplicationController
       when "ACTIVE"
         @status = "ACTIVE"
       end
-    else 
-      Resque.enqueue(ESIndexer, github_url)
+    else
+      Resque.enqueue(ESIndexer, repo_url)
       @status = "INACTIVE"
     end
   end
@@ -23,7 +23,7 @@ class SearchController < ApplicationController
     repo_url = params[:repo]
     file = params[:file]
     c = default_client
-    # return full file content
+    c.get_source
   end
 
   def functions
@@ -57,6 +57,6 @@ class SearchController < ApplicationController
 
   private
   def default_client
-	 Elasticsearch::Client.new(hosts: [Figaro.env['es_url'])
+	 Elasticsearch::Client.new(hosts: [Figaro.env['es_url']])
   end
 end

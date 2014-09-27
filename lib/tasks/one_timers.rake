@@ -2,17 +2,27 @@ namespace :one_timers do
   
   desc "Create Github index. Delete existing"
   task create_es_index: :environment do
+  	delete_index
   	index_name = "github"
   	client = get_es_client
   	resp = client.indices.create index: index_name,
   				body: {
-            	    "mappings"=> {
+            	"mappings"=> {
 				        "repo" => {
 				          "properties" => {
 				            "path" => {
-				              "type" => "string",
-				              "search_analyzer" => "str_search_analyzer",
-				              "index_analyzer" => "str_index_analyzer"
+				              "type" => "multi_field",
+				              "fields" => {
+				              	"name" => {
+				              		"type" => "string",
+				              		"search_analyzer" => "str_search_analyzer",
+				              		"index_analyzer" => "str_index_analyzer"
+				              		},
+				              		"untouched" => {
+				              			"type" => "string", 
+				              			"index" => "not_analyzed"
+				              		}
+				              }
 				            },
 				            "repo_url" => {"type"=> "string", "index" => "not_analyzed"},
 				            "name"=>{"type"=> "string"},
@@ -57,8 +67,15 @@ namespace :one_timers do
   end
 
 	def get_es_client
-		address = "10.1.1.224:9200"
+		address = Figaro.env['es_url']
 		Elasticsearch::Client.new(hosts: [address])
-    end
+  end
+
+  def delete_index
+  	client = get_es_client
+  	if client.indices.exists index: 'github'
+  		client.indices.delete index: 'github'
+  	end
+  end
 
 end
