@@ -2,6 +2,7 @@ from elasticsearch import Elasticsearch
 import sys
 import ipdb
 import os
+import shutil
 from pprint import pprint
 from subprocess import call
 from git import Repo
@@ -67,6 +68,7 @@ def find_function(line):
 def clone_repo(repo_dir):
 	repo_url = "https://github.com/" + REPO
 	call(["git", "clone", repo_url, repo_dir])
+	shutil.rmtree(repo_dir + "/.git")
 
 def main():
 	repo_dir = PRIVATE_PATH + "/" + REPO.split("/")[1]

@@ -23,7 +23,21 @@ class SearchController < ApplicationController
     repo_url = params[:repo]
     file = params[:file]
     c = default_client
-    c.get_source
+    @results = c.search index: ES_INDEX,
+                type: ES_TYPE,
+                body: {
+                  query: {
+                      match: {
+                         "path.untouched": {
+                             query: query,
+                              operator: "and"
+                         }
+                      }
+                  }
+                  ,fields: [
+                     "name","path","body_preview"
+                    ]
+              }
   end
 
   def functions
@@ -31,28 +45,69 @@ class SearchController < ApplicationController
     file = params[:file]
     query = params[:query]
     c =  default_client
-    # return functions with their line numbers
+    @results = c.search index: ES_INDEX,
+                type: ES_TYPE,
+                body: {
+                   "query" => {
+                       "match"=> {
+                          "function_name"=> {
+                              "query" :query,
+                               "operator" => "and"
+                          }
+                       }
+                   },
+                   "filter"=> {
+                       "and"=> {
+                          "filters"=> [
+                              {
+                                  "term"=>{
+                                      "path"=> file
+                                  }
+                              },
+                              {
+                                  "term"=>{
+                                      "repo_url"=> repo_url
+                                  }
+                              }
+                            ]
+                        }
+                    }
+                  ,fields: [
+                     "function_name", "line_number"
+                    ]
+                }
   end
 
   def files
     repo_url = params[:repo_url]
     query = params[:query]
     c =  default_client
-    c.search index: ES_INDEX,
-      type: ES_TYPE,
-      body: {
-        query: {
-            match: {
-               path: {
-                   query: query,
-                    operator: "and"
-               }
-            }
-        }
-        ,fields: [
-           "name","path","body_preview"
-          ]
-    } 
+    @results = c.search index: ES_INDEX,
+                type: ES_TYPE,
+                body: {
+                  query: {
+                      match: {
+                         path: {
+                             query: query,
+                              operator: "and"
+                         }
+                      }
+                  }
+                   "filter"=> {
+                       "and"=> {
+                          "filters"=> [
+                              {
+                                  "term"=>{
+                                      "repo_url"=> repo_url
+                                  }
+                              }
+                            ]
+                        }
+                    }
+                  ,fields: [
+                     "name","path","body_preview"
+                    ]
+                } 
   end
 
   private

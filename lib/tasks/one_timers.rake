@@ -13,7 +13,7 @@ namespace :one_timers do
 				            "path" => {
 				              "type" => "multi_field",
 				              "fields" => {
-				              	"name" => {
+				              	"path" => {
 				              		"type" => "string",
 				              		"search_analyzer" => "str_search_analyzer",
 				              		"index_analyzer" => "str_index_analyzer"
@@ -34,7 +34,20 @@ namespace :one_timers do
 					        "properties"=>{
 					            "repo_url" => {"type" => "string", "index" => "not_analyzed"},
 					            "path" => {"type" => "string", "index" => "not_analyzed"},
-					            "function_name" => {"type" => "string", "index" => "not_analyzed"},
+					            "function_name" => {
+					              "type" => "multi_field",
+					              "fields" => {
+					              	"function_name" => {
+					              		"type" => "string",
+					              		"search_analyzer" => "str_search_analyzer",
+					              		"index_analyzer" => "str_index_analyzer"
+					              		},
+					              		"untouched" => {
+					              			"type" => "string", 
+					              			"index" => "not_analyzed"
+					              		}
+					              }
+					            },
 					            "line_number" => {"type" => "integer"}
 					        }
 					    }
@@ -43,21 +56,21 @@ namespace :one_timers do
 					    "analysis" => {
 					      "analyzer" => {
 					        "str_search_analyzer" => {
-					          "tokenizer" => "whitespace",
-					          "filter" => ["lowercase","word_delimiter"]
+					          "tokenizer" => "standard",
+					          "filter" => ["standard", "lowercase", "mynGram"]
 					        },
 
 					        "str_index_analyzer" => {
-					          "tokenizer" => "keyword",
-					          "filter" => ["lowercase","word_delimiter","substring"]
+					          "tokenizer" => "standard",
+					          "filter" => ["lowercase", "mynGram"]
 					        }
 					      },
 
 					      "filter" => {
-					        "substring" => {
+					        "mynGram" => {
 					          "type" => "nGram",
 					          "min_gram" => 2,
-					          "max_gram"  => 15
+					          "max_gram"  => 50
 					        }
 					      }
 				    	}
