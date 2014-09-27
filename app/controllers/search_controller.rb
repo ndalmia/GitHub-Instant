@@ -6,6 +6,7 @@ class SearchController < ApplicationController
     repo_url = params[:repo]
     repo = Repo.where(:url => repo_url)
 
+    repo_url ||= "iudhiuhghbyb"
     url = "https://github.com/"+repo_url
     uri = URI.parse(url)
     response = Net::HTTP.get(uri)

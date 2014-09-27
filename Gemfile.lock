@@ -1,9 +1,6 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    acl_service (0.0.5)
-      httparty
-      rails (~> 4.0.2)
     actionmailer (4.0.5)
       actionpack (= 4.0.5)
       mail (~> 2.5.4)
@@ -143,6 +140,11 @@ GEM
       activesupport (>= 3.0)
       choice (~> 0.1.6)
       ruby-graphviz (~> 1.0.4)
+    rails_12factor (0.0.2)
+      rails_serve_static_assets
+      rails_stdout_logging
+    rails_serve_static_assets (0.0.2)
+    rails_stdout_logging (0.0.3)
     railties (4.0.5)
       actionpack (= 4.0.5)
       activesupport (= 4.0.5)
@@ -207,6 +209,9 @@ GEM
     turbolinks (2.3.0)
       coffee-rails
     tzinfo (0.3.41)
+    uglifier (2.5.0)
+      execjs (>= 0.3.0)
+      json (>= 1.8.0)
     vegas (0.1.11)
       rack (>= 1.0.0)
     websocket-driver (0.3.4)
@@ -215,7 +220,6 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  acl_service (= 0.0.5)
   activerecord-import (>= 0.4.0)
   activerecord-postgis-adapter
   awesome_print
@@ -234,6 +238,7 @@ DEPENDENCIES
   rack-ssl-enforcer
   rails (= 4.0.5)
   rails-erd
+  rails_12factor
   redis
   resque (~> 1.25.1)
   resque-loner
@@ -243,3 +248,4 @@ DEPENDENCIES
   sdoc
   thin
   turbolinks
+  uglifier

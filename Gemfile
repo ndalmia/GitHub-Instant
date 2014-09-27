@@ -1,13 +1,17 @@
 source 'https://rubygems.org'
 
+group :production do
+  gem 'rails_12factor'
+end
+
+
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
+gem 'pg'
 gem 'rails', '4.0.5'
-gem 'acl_service', '0.0.5'
 gem 'httparty'
 gem 'rack-ssl-enforcer'
 
 #My custom gems. 
-gem 'pg'
 gem 'activerecord-postgis-adapter'
 gem "redis"
 gem "activerecord-import", '>=0.4.0'
@@ -38,5 +42,11 @@ end
 gem 'faye'
 gem 'jquery-rails', '~> 2.3.0'
 gem 'turbolinks'
+
 gem 'byebug'
 gem 'jquery-ui-rails'
+
+
+group :assets do
+  gem 'uglifier'
+end
