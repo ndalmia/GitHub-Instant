@@ -16,7 +16,20 @@ body {margin:0;font: 13px/1.4 Helvetica, arial, freesans, clean, sans-serif, "Se
 .body {width:100%;}
 .container {margin: 0 auto;width:980px;}
 h1 {text-align: center;padding: 0;margin: 0;}
-.main-input-box {width:600px; margin: 0 auto;}
+.main-input-box {width:600px; margin: 0 auto; position: relative;}
+.file-tag {
+	display: none;
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	line-height: 45px;
+	padding: 0 10px;
+	background-color: #ccc;
+}
+
+.main-input-box.function-search input{padding-left: 120px}
+.main-input-box.function-search .file-tag {display: block;}
 .main-input {width: 550px;padding: 10px;border-radius: 3px;border:1px solid #aaa; font-size: 18px;}
 .main-search-btn {width:220px;margin:0 auto;margin-top: 100px;}
 .univ-btn {width:220px;padding: 8px; font-size: 16px;background-color: cornflowerblue;border-width:0px;border-radius:2px;color:white;cursor: pointer;}

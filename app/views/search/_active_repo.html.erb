@@ -1,11 +1,12 @@
 <div class="body">
 	<div class="container">
 		<div> 
-			<h1>Github Instant</h1>
+      <h1>Github Instant</h1>
 				<div class="main-input-box">
-					<input type="text" class="main-input" name="repo" id="query" required />
+          <div class="file-tag"></div>
+				  <input type="text" class="main-input" name="repo" id="query" required />
 				</div>	
-				<div class="preview-head">
+				<div class="preview-head" style="margin-top:50px;">
 				
 				</div>	
 				<div class="body-preview">
@@ -16,14 +17,42 @@
 </div>
 
 <script>
+function switch_to_type (type, file_name) {
+  file_name = file_name || "";
+  if (type === 'function') {
+    $('.main-input-box').addClass('function-search')
+    input.val('');
+    if (true) {
+      $('.main-input-box').find('.file-tag').text(file_name)
+    }
+  } else if (type === 'file') {
+    $('.main-input-box').removeClass('function-search')
+    $('.main-input-box').find('.file-tag').text('')
+  }
+}
+
+window.input = $('.main-input-box').find('input');
+
+function input_cb(e) {
+  // backspace
+  console.log(input.val());
+  if (e.keyCode === 8) {
+    if ($('.main-input-box').hasClass('function-search') && input.val().length <= 1) {
+      switch_to_type('file');
+    }
+  }
+}
+
 $(document).ready(function(){ 
+  input.on('keydown', input_cb);
+
 	function log( message ) {
       $( "<div>" ).text( message ).prependTo( "#log" );
       $( "#log" ).scrollTop( 0 );
     }
  	$( "#query" ).autocomplete({
       source: function( request, response ) {
-      	var ac_data = new Array();
+        var ac_data = new Array();
         $.ajax({
           url: "<%= files_path %>",
           dataType: "json",
@@ -35,7 +64,7 @@ $(document).ready(function(){
           	for(var i=0; i<data.length; i++){
           		ac_data[i] = {};
           		ac_data[i].name = data[i].filename; 
-          		ac_data[i].value = data[i].filename; 
+          		ac_data[i].value = "<font size='2px'><b>"+data[i].filename+"</b>"+"<br>"+data[i].path+"</font>"; 
           		ac_data[i].body_preview = data[i].body_preview;
           		ac_data[i].path = data[i].path;
           	}
@@ -45,13 +74,28 @@ $(document).ready(function(){
         });
       },
       minLength: 3,
+      // full file /file
       select: function( event, ui ) {
-        //alert();
+        $.ajax({
+          url: "<%= file_path %>",
+          dataType: "json",
+          data: {
+            file: ui.item.path,
+            repo : "<%= params[:repo] %>"
+          },
+          success: function( data ) {
+            $(".body-preview").html(data[0].body);
+            $(".preview-head").html(ui.item.path);
+            switch_to_type('function', ui.item.name);
+          }
+        });
+        ui.item.label = ui.item.name;
       },
       focus: function (event, ui) {
         	//  		alert(ui.item.label);
         		$(".body-preview").html(ui.item.body_preview);
         		$(".preview-head").html(ui.item.path);
+            //ui.item.value = ui.item.name;
 
       },
       open: function() {
