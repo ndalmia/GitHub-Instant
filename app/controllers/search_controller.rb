@@ -4,18 +4,34 @@ class SearchController < ApplicationController
 
   def index
     repo_url = params[:repo]
+    if repo_url.include? "github.com"
+      uri = URI::parse('http://stackoverflow.com//questions/ask')
+      repo_url = uri.path
+    end
+
+    repo_url = repo_url[1..-1] if repo_url[0] == '/'
+
     repo = Repo.where(:url => repo_url)
 
-    if repo.first
-      case repo.first.status
-      when "INACTIVE"
-        @status = "INACTIVE"
-      when "ACTIVE"
-        @status = "ACTIVE"
-      end
+    repo_url ||= "iudhiuhghbyb"
+    url = "https://github.com/"+repo_url
+    uri = URI.parse(url)
+    response = Net::HTTP.get(uri)
+    if response == "{\"error\":\"Not Found\"}"
+      @error = "Repo does not exist"
+      params[:repo] = nil
     else
-      Resque.enqueue(ESIndexer, repo_url)
-      @status = "INACTIVE"
+      if repo.first
+        case repo.first.status
+        when "INACTIVE"
+          @status = "INACTIVE"
+        when "ACTIVE"
+          @status = "ACTIVE"
+        end
+      else
+        Resque.enqueue(ESIndexer, repo_url)
+        @status = "INACTIVE"
+      end
     end
   end
 
@@ -44,10 +60,47 @@ class SearchController < ApplicationController
           }
       },
       "fields"=> [
-         "name","path","body_preview"
+         "name","path","body"
         ]
     }
-    render :json => query_es(query)
+    results = JSON.parse(query_es(query))
+    response = []
+    results["hits"]["hits"].each do |hit|
+      body = hit["fields"]["body"].first
+      path = hit["fields"]["path"].first
+      filename = hit["fields"]["name"].first
+      functions = []
+      query =
+      {
+         "filter"=> {
+             "and"=> {
+                "filters"=> [
+                    {
+                        "term"=>{
+                            "path"=> file
+                        }
+                    },
+                    {
+                        "term"=>{
+                            "repo_url"=> repo_url
+                        }
+                    }
+                  ]
+              }
+          },
+         "fields"=> [
+           "function_name", "line_number"
+          ]
+      }
+      function_results = JSON.parse(query_es(query))
+      function_results["hits"]["hits"].each do |function_hit|
+        function_name = function_hit["fields"]["function_name"].first
+        line_number = function_hit["fields"]["line_number"].first
+        functions.push({function_name: function_name, line_number: line_number})
+      end
+      response.push({body: body, path: path, filename: filename, functions: functions})
+    end
+    render :json => response
   end
 
   def functions
@@ -84,7 +137,14 @@ class SearchController < ApplicationController
          "function_name", "line_number"
         ]
     }
-    render :json => query_es(query)
+    results = JSON.parse(query_es(query))
+    response = []
+    results["hits"]["hits"].each do |hit|
+      function_name = hit["fields"]["function_name"].first
+      line_number = hit["fields"]["line_number"].first
+      response.push({function_name: function_name, line_number: line_number})
+    end
+    render :json => response
   end
 
   def files
@@ -115,7 +175,15 @@ class SearchController < ApplicationController
            "name","path","body_preview"
           ]
     }
-    render :json => query_es(query)
+    results = JSON.parse(query_es(query))
+    response = []
+    results["hits"]["hits"].each do |hit|
+      body_preview = hit["fields"]["body_preview"].first
+      path = hit["fields"]["path"].first
+      filename = hit["fields"]["name"].first
+      response.push({body_preview: body_preview, path: path, filename: filename})
+    end
+    render :json => response
   end
 
   private

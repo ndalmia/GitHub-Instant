@@ -1,0 +1,71 @@
+<div class="body">
+	<div class="container">
+		<div> 
+			<h1>Github Instant</h1>
+				<div class="main-input-box">
+					<input type="text" class="main-input" name="repo" id="query" required />
+				</div>	
+				<div class="preview-head">
+				
+				</div>	
+				<div class="body-preview">
+
+				</div>	
+		</div>
+	</div>
+</div>
+
+<script>
+$(document).ready(function(){ 
+	function log( message ) {
+      $( "<div>" ).text( message ).prependTo( "#log" );
+      $( "#log" ).scrollTop( 0 );
+    }
+ 	$( "#query" ).autocomplete({
+      source: function( request, response ) {
+      	var ac_data = new Array();
+        $.ajax({
+          url: "<%= files_path %>",
+          dataType: "json",
+          data: {
+            query: request.term,
+            repo : "<%= params[:repo] %>"
+          },
+          success: function( data ) {
+          	for(var i=0; i<data.length; i++){
+          		ac_data[i] = {};
+          		ac_data[i].name = data[i].filename; 
+          		ac_data[i].value = data[i].filename; 
+          		ac_data[i].body_preview = data[i].body_preview;
+          		ac_data[i].path = data[i].path;
+          	}
+            response( ac_data );
+            
+          }
+        });
+      },
+      minLength: 3,
+      select: function( event, ui ) {
+        //alert();
+      },
+      focus: function (event, ui) {
+        	//  		alert(ui.item.label);
+        		$(".body-preview").html(ui.item.body_preview);
+        		$(".preview-head").html(ui.item.path);
+
+      },
+      open: function() {
+        $( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+      },
+      close: function() {
+        $( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+      }
+    }).data('ui-autocomplete')._renderItem =  function (ul, item) {
+  			return $( "<li>" )
+			    .attr( "data-value", item.value )
+			    .attr( "data-index", item.index)
+			    .append( item.label )
+			    .appendTo( ul );
+      }
+  });
+</script>
