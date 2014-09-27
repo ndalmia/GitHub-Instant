@@ -4,6 +4,12 @@ class SearchController < ApplicationController
 
   def index
     repo_url = params[:repo]
+    if repo_url.include? "github.com"
+      uri = URI::parse('http://stackoverflow.com//questions/ask')
+      repo_url = uri.path
+    end
+    repo_url = repo_url[1..-1] if repo_url[0] == '/'
+
     repo = Repo.where(:url => repo_url)
 
     repo_url ||= "iudhiuhghbyb"
