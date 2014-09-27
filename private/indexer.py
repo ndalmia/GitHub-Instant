@@ -25,7 +25,7 @@ es = Elasticsearch([ELASTICSEARCH_URL])
 
 def pygmentize(filename, filestring):
 	lexer = get_lexer_for_filename(filename)
-	formatter = HtmlFormatter(cssclass="source", linespans="line", nowrap=True)
+	formatter = HtmlFormatter(cssclass="source", linespans="line", nowrap=True, linenos=True)
 	f = open("test.html", 'w')
 	result = highlight(filestring, lexer, formatter)
 	return result
@@ -35,10 +35,10 @@ def get_paths(path, repo_url):
 		#implement ignoring many files here
 		full_root = root
 		root = root.split(path)[1]
-		if root and root[0] == ".":
+		if root and (root[0] == "."):
 			continue
 		for name in files:
-			if name and name[0] == '.':
+			if name and (name[0] == '.' or '.' not in name):
 				continue
 			path_name = os.path.join(root, name)
 			full_path_name = os.path.join(full_root, name)
@@ -57,7 +57,12 @@ def get_paths(path, repo_url):
 					if function_name:
 						body2 = {"path": path_name, "function_name": function_name, "line_number":line_number, "repo_url" : repo_url}
 						es.index(index=INDEX_NAME, doc_type=TYPE_NAME_FUNC, body=body2)
-			body = {"path":path_name, "name":name, "body":pygmentize(name,content), "body_preview": pygmentize(name, preview), "repo_url" : repo_url }
+				try:
+					content = pygmentize(name, content)
+					preview = pygmentize(name, preview)
+				except Exception as e:
+					continue
+			body = {"path":path_name, "name":name, "body":content, "body_preview":  preview, "repo_url" : repo_url }
 			es.index(index=INDEX_NAME, doc_type=TYPE_NAME, body=body)
 
 def find_function(line):
