@@ -25,7 +25,7 @@ es = Elasticsearch([ELASTICSEARCH_URL])
 
 def pygmentize(filename, filestring):
 	lexer = get_lexer_for_filename(filename)
-	formatter = HtmlFormatter(cssclass="source", linespans="line", nowrap=True, linenos=True)
+	formatter = HtmlFormatter(cssclass="source", linespans="line")
 	f = open("test.html", 'w')
 	result = highlight(filestring, lexer, formatter)
 	return result
