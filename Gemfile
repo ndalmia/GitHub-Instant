@@ -1,6 +1,11 @@
+source 'https://rubygems.org'
+
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 source 'https://rubygems.org'
 gem 'rails', '4.0.5'
+gem 'acl_service', '0.0.5'
+gem 'httparty'
+gem 'rack-ssl-enforcer'
 
 #My custom gems. 
 gem 'pg'
@@ -30,3 +35,8 @@ group :development do
   gem 'byebug'
   gem 'awesome_print'#, :require => 'ap'
 end
+
+gem 'faye'
+gem 'jquery-rails'
+gem 'turbolinks'
+gem 'byebug'

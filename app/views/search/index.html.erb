@@ -1,0 +1,5 @@
+<% if @status == "ACTIVE" %>
+  <%= render 'search/active_repo' %>
+<% else %>
+  <%= render 'search/inactive_repo' %>
+<% end %>
