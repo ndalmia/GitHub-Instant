@@ -1,7 +1,11 @@
- 
-<div class="page-header"><a class="btn btn-link" href="<%= params[:repo] %>" target="_blank"><%= params[:repo] %></a></div>
-<div id="query-div"><input type="text" name="repo" id="query" required ></div>
-<div class="preview-head">Instructions</div>	
+ <nav class="navbar navbar-default navbar-fixed-top active-container" role="navigation">
+  <div class="container">
+    <div class="page-header"><a class="btn btn-link" href="<%= params[:repo] %>" target="_blank"><%= params[:repo] %></a></div>
+    <div id="query-div"><input type="text" name="repo" id="query" required ></div>
+    <div class="preview-head">Instructions</div>
+  </div>	
+</nav>
+
 <div class="content">
 </div>	
 
@@ -40,8 +44,9 @@ $(document).ready(function(){
       },
       select: function( event, ui ) {
         if (ui.item.line_number) {
-          var func_scroll_height = $('span#line-'+ui.item.line_number).offset().top - $('.content').offset().top;
-          $('.content').scrollTo(func_scroll_height);        
+          var func_scroll_height = $('span#line-'+ui.item.line_number).offset().top - 190;
+          window.scrollTo(0,func_scroll_height);  
+          $('span#line-'+ui.item.line_number).css("background-color", "rgba(0, 0, 0, 0)");      
         }
         ui.item.value = $('#query').val();
       },
@@ -49,8 +54,9 @@ $(document).ready(function(){
     		$(".content").html(ui.item.body);
     		$(".preview-head").html(ui.item.path);
         if (ui.item.line_number) {
-          var func_scroll_height = $('span#line-'+ui.item.line_number).offset().top - $('.content').offset().top;
-          $('.content').scrollTo(func_scroll_height);        
+          var func_scroll_height = $('span#line-'+ui.item.line_number).offset().top - 190;
+          window.scrollTo(0,func_scroll_height);  
+          $('span#line-'+ui.item.line_number).css("background-color", "#C8CDD7");      
         }
         return false; 
       },

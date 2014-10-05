@@ -67,12 +67,10 @@ input {
 	margin-top: 10px;
 	padding: 5px 10px;
 	text-shadow: 0 1px 0 #fff;
-	border-bottom: 1px solid #d8d8d8;
 	background-color: #f7f7f7;
 	border-top-left-radius: 4px;
 	border-top-right-radius: 4px;
 	border: 1px solid #ddd;
-	border-bottom :none;
 }
 
 .content {
@@ -80,8 +78,13 @@ input {
 	margin-bottom: 15px;
 	border: 1px solid #ddd;
 	border-radius: 3px;
-	overflow: scroll;
-	max-height: 400px;
+  margin-top:165px;
+  z-index:5 !important;
+}
+
+.active-container {
+  z-index: 10 !important;
+  background: white;
 }
 
 
@@ -152,7 +155,7 @@ body .vi { color: #19177C } /* Name.Variable.Instance */
 body .il { color: #666666 } /* Literal.Number.Integer.Long */
 
 .ui-autocomplete {
-  position: absolute;
+  position: fixed !important;
   top: 100%;
   left: 0;
   z-index: 1000;
