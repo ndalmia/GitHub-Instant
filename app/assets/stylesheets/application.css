@@ -87,6 +87,18 @@ input {
   background: white;
 }
 
+#inactive-loader {
+  position: fixed;
+  top:30%;
+  left:40%;
+  width:350px;
+  text-align: center;
+  font-size:20px;
+  letter-spacing: 3px;
+  word-spacing: 4px;
+  line-height: 30px;
+}
+
 
 td.linenos { background-color: #f0f0f0; padding-right: 10px; }
 span.lineno { background-color: #f0f0f0; padding: 0 5px 0 5px; }
