@@ -1,6 +1,11 @@
- <nav class="navbar navbar-default navbar-fixed-top active-container" role="navigation">
+ <nav class="navbar navbar-default navbar-fixed-top active-container">
   <div class="container">
-    <div class="page-header"><a class="btn btn-link" href="<%= params[:repo] %>" target="_blank"><%= params[:repo] %></a></div>
+    <div class="page-header">
+      <a class="brand" href="/">GitHub Instant</a><a class="btn btn-link" href="<%= params[:repo] %>" target="_blank"><%= params[:repo] %></a>
+      <ul class="nav nav-pills pull-right">
+        <a class="btn btn-link">Login using GitHub to search in private repositories</a>
+      </ul>
+    </div>
     <div id="query-div"><input type="text" name="repo" id="query" required ></div>
     <div class="preview-head">Instructions</div>
   </div>	
