@@ -42,6 +42,7 @@ def get_paths(path, repo_url):
 				continue
 			path_name = os.path.join(root, name)
 			full_path_name = os.path.join(full_root, name)
+			functions = []
 			with open(full_path_name, 'r') as f:
 				read_data = f.read(FULL_SIZE)
 				preview = ""
@@ -55,15 +56,20 @@ def get_paths(path, repo_url):
 					line_number += 1
 					function_name = find_function(line)
 					if function_name:
-						body2 = {"path": path_name, "function_name": function_name, "line_number":line_number, "repo_url" : repo_url}
-						es.index(index=INDEX_NAME, doc_type=TYPE_NAME_FUNC, body=body2)
+						if function_name.startswith("self."):
+							function_name = function_name[5:]
+						functions.append({"function_name":function_name, "line_number":line_number})
 				try:
 					content = pygmentize(name, content)
 					preview = pygmentize(name, preview)
 				except Exception as e:
 					continue
 			body = {"path":path_name, "name":name, "body":content, "body_preview":  preview, "repo_url" : repo_url }
-			es.index(index=INDEX_NAME, doc_type=TYPE_NAME, body=body)
+			ret = es.index(index=INDEX_NAME, doc_type=TYPE_NAME, body=body)
+			file_id = ret[u'_id']
+			for function in functions:
+				body = {"function_name":function["function_name"], "line_number":function["line_number"], "path":path_name, "repo_url" : repo_url}
+				es.index(index=INDEX_NAME, doc_type=TYPE_NAME_FUNC, body=body, parent=file_id)
 
 def find_function(line):
 	regex = re.compile("\sdef\s(.+)\s")

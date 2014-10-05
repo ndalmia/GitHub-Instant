@@ -31,9 +31,25 @@ namespace :one_timers do
 				        	}
 				      	},
 						"function"=> {
+			            "_parent"=> {
+			                "type"=> "repo"
+			            },
 					        "properties"=>{
 					            "repo_url" => {"type" => "string", "index" => "not_analyzed"},
-					            "path" => {"type" => "string", "index" => "not_analyzed"},
+					            "path" => {
+					              "type" => "multi_field",
+					              "fields" => {
+					              	"path" => {
+					              		"type" => "string",
+					              		"search_analyzer" => "str_search_analyzer",
+					              		"index_analyzer" => "str_index_analyzer"
+					              		},
+					              		"untouched" => {
+					              			"type" => "string", 
+					              			"index" => "not_analyzed"
+					              		}
+					              }
+					            },
 					            "function_name" => {
 					              "type" => "multi_field",
 					              "fields" => {
@@ -69,7 +85,7 @@ namespace :one_timers do
 					      "filter" => {
 					        "substring" => {
 					          "type" => "nGram",
-					          "min_gram" => 2,
+					          "min_gram" => 1,
 					          "max_gram"  => 15
 					        }
 					      }

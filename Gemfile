@@ -10,6 +10,7 @@ gem 'rails', '4.0.5'
 gem 'httparty'
 gem 'rack-ssl-enforcer'
 
+gem 'pg'
 #My custom gems. 
 gem 'activerecord-postgis-adapter'
 gem "redis"
@@ -48,3 +49,5 @@ gem 'jquery-ui-rails'
 group :assets do
   gem 'uglifier'
 end
+
+gem "twitter-bootstrap-rails"

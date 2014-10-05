@@ -49,6 +49,7 @@ class SearchController < ApplicationController
     file = params[:file]
     query = 
     {
+      "size" => 10,
       "query"=>{
           "match" => {
              "path.untouched" => {
@@ -114,7 +115,6 @@ class SearchController < ApplicationController
 
   def functions
     repo_url = params[:repo]
-    repo_url = params[:repo]
     if repo_url 
        if repo_url.include? "github.com"
           uri = URI::parse(repo_url)
@@ -122,16 +122,16 @@ class SearchController < ApplicationController
         end
        repo_url = repo_url[1..-1] if repo_url[0] == '/'
     end
-    query = params[:query]
+    query_function_part = params[:query]
+    query_file_part = params[:query_file_part]
     query =
     {
-       "query" => {
-           "match"=> {
-              "function_name"=> {
-                  "query" =>query,
-                   "operator" => "and"
-              }
-           }
+      "size" => 10,
+      "query" => {
+      "bool" => {
+        "should" => [],
+        "minimum_should_match" => 2,
+        }
        },
        "filter"=> {
            "and"=> {
@@ -145,25 +145,35 @@ class SearchController < ApplicationController
             }
         },
        "fields"=> [
-         "function_name", "line_number", "path", "repo_url"
+         "_parent","function_name", "line_number", "path", "repo_url"
         ]
     }
-    results = JSON.parse(query_es(query))
+
+    query["query"]["bool"]["should"].push( { "match"=> { "function_name"=> { "query" => query_function_part, "operator" => "and" } } }) if query_function_part != ""
+    query["query"]["bool"]["should"].push( { "match"=> { "path"=> { "query" => query_file_part, "operator" => "and" } } }) if query_file_part != ""
+
+    results = JSON.parse(query_es(query, "function"))
     response = []
     results["hits"]["hits"].each do |hit|
       function_name = hit["fields"]["function_name"].first
       line_number = hit["fields"]["line_number"].first
       path = hit["fields"]["path"].first
-      response.push({filename: function_name, path: path})
+      body = JSON.parse(get_file_from_id(hit["fields"]["_parent"]))["_source"]["body"]
+      response.push({function_name: function_name, path: path, line_number: line_number, body: body})
     end
     render :json => response
   end
 
   def files
-    if params[:query][0] == '@'
+    if params[:query].include? '@'
+      if params[:query][0] == '@'
+        params[:query_file_part] = ""
+      else
+        params[:query_file_part] = params[:query][0..params[:query].index('@')-1]
+      end
+      params[:query] = params[:query][params[:query].index('@')+1..params[:query].length]
       functions
     else
-      repo_url = params[:repo]
       repo_url = params[:repo]
       if repo_url 
     	   if repo_url.include? "github.com"
@@ -195,27 +205,35 @@ class SearchController < ApplicationController
                 }
             },
           "fields"=> [
-             "name","path","body_preview"
+             "name","path","body"
             ]
       }
-      results = JSON.parse(query_es(query))
+      results = JSON.parse(query_es(query, "repo"))
       response = []
       results["hits"]["hits"].each do |hit|
-        body_preview = hit["fields"]["body_preview"].first
+        body = hit["fields"]["body"].first
         path = hit["fields"]["path"].first
         filename = hit["fields"]["name"].first
-        response.push({body_preview: body_preview, path: path, filename: filename})
+        response.push({body: body, path: path, filename: filename})
       end
       render :json => response
     end
   end
 
   private
-  def query_es(query)
-    uri = URI.parse("http://"+Figaro.env["es_host"]+":"+Figaro.env["es_port"] + "/"+ES_INDEX+"/_search")
+  def query_es(query, type)
+    uri = URI.parse("http://"+Figaro.env["es_host"]+":"+Figaro.env["es_port"] + "/"+ES_INDEX+"/"+type+"/_search")
     http = Net::HTTP.new(Figaro.env["es_host"],Figaro.env["es_port"])
     Rails.logger.info query
     response = http.post(uri.path,query.to_json)
     response.body
+  end
+
+  def get_file_from_id(file_id)
+    type = "repo"
+    uri = URI.parse("http://"+Figaro.env["es_host"]+":"+Figaro.env["es_port"] + "/"+ES_INDEX+"/"+type+"/"+file_id)
+    http = Net::HTTP.new(Figaro.env["es_host"],Figaro.env["es_port"])
+    request = Net::HTTP::Get.new(uri.request_uri)
+    return http.request(request).body
   end
 end

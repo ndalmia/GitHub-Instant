@@ -113,6 +113,7 @@ GEM
     multi_json (1.10.1)
     multi_xml (0.5.5)
     multipart-post (2.0.0)
+    pg (0.17.1)
     polyglot (0.3.5)
     pry (0.9.12.6)
       coderay (~> 1.0)
@@ -207,6 +208,11 @@ GEM
       polyglot (>= 0.3.1)
     turbolinks (2.3.0)
       coffee-rails
+    twitter-bootstrap-rails (2.2.8)
+      actionpack (>= 3.1)
+      execjs
+      rails (>= 3.1)
+      railties (>= 3.1)
     tzinfo (0.3.41)
     uglifier (2.5.0)
       execjs (>= 0.3.0)
@@ -231,6 +237,7 @@ DEPENDENCIES
   httparty
   jquery-rails (~> 2.3.0)
   jquery-ui-rails
+  pg
   pry (~> 0.9.12.6)
   pry-rails
   rack-ssl-enforcer
@@ -246,4 +253,5 @@ DEPENDENCIES
   sdoc
   thin
   turbolinks
+  twitter-bootstrap-rails
   uglifier
