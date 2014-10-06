@@ -1,7 +1,7 @@
 class Repo < ActiveRecord::Base
-  before_create :set_default_status
+  before_create :set_first_status
 
-  def set_default_status
-    self.status = "INACTIVE"
+  def set_first_status
+    self.status = "NEW"
   end
 end

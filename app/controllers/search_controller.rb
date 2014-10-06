@@ -6,17 +6,16 @@ class SearchController < ApplicationController
   ES_INDEX = "github"
 
   def index
-    repo = Repo.where(:url => params[:repo], :branch => params[:branch]).first
-    if repo
-      case repo.status
+    repo = Repo.find_or_create_by(:url => params[:repo], :branch => params[:branch])
+    UserRepoSearch.create(:user_id => current_user.id, :repo_id => repo.id) if current_user
+    case repo.status
       when "INACTIVE"
         @status = "INACTIVE"
       when "ACTIVE"
         @status = "ACTIVE"
-      end
-    else
-      Resque.enqueue(ESIndexer, params[:repo], params[:branch], @access_token)
-      @status = "INACTIVE"
+      when "NEW"
+        Resque.enqueue(ESIndexer, params[:repo], params[:branch], @access_token)
+        @status = "INACTIVE"
     end
   end
 
@@ -165,6 +164,8 @@ class SearchController < ApplicationController
     response = JSON.parse(Net::HTTP.get(uri))
     if response["message"] == "Not Found"
       redirect_to :root, :notice => "Repository does not exist."
+    elsif response["language"] != "Ruby"
+      redirect_to :root, :notice => "Currently only Ruby repositories are supported."
     else
       @access_token = nil
       @access_token = current_user.access_token if response["private"]
@@ -173,7 +174,7 @@ class SearchController < ApplicationController
 
   def check_if_branch_exist
     repo_url = params[:repo]
-    params[:branch] ||= "master"
+    params[:branch] = "master" if params[:branch].blank?
     branch = params[:branch]
     url = "https://api.github.com/repos/" + repo_url + "/branches?ref=" + branch
     url += "&access_token="+current_user.access_token if current_user
