@@ -11,6 +11,9 @@ require 'resque-queue-priority-server'
   get 'files' => 'search#files',  :as => :files
   get 'functions' => 'search#functions', :as => :file_functions
 
+  get "/auth/github/callback" => "sessions#github_callback"
+  get "/logout" => "sessions#destroy", :as => :signout
+
   get "*path"   => redirect("404.html")
   post "*path"  => redirect("404.html")
 end

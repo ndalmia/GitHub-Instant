@@ -1,9 +1,14 @@
  <nav class="navbar navbar-default navbar-fixed-top active-container">
   <div class="container">
     <div class="page-header">
-      <a class="brand" href="/">GitHub Instant</a><a class="btn btn-link" href="<%= params[:repo] %>" target="_blank"><%= params[:repo] %></a>
+      <a class="brand" href="/">GitHub Instant</a><a class="btn btn-link" href="https://github.com/<%= params[:repo] + "/tree/" + params[:branch] %>" target="_blank"><%= params[:repo] + " : " + params[:branch]%></a>
       <ul class="nav nav-pills pull-right">
-        <a class="btn btn-link">Login using GitHub to search in private repositories</a>
+        <% if current_user %>
+          <a class="btn btn-link" id="welcome">Welcome <%= current_user.username %> !</a>
+          <a href="/logout" id="logout" class="btn btn-link">Logout</a>
+        <% else %>
+          <a class="btn btn-link" href="/auth/github">Login using GitHub to search in private repositories</a>
+        <% end %>
       </ul>
     </div>
     <div id="query-div"><input type="text" name="repo" id="query" required ></div>
@@ -25,7 +30,8 @@ $(document).ready(function(){
           dataType: "json",
           data: {
             query: request.term,
-            repo : "<%= params[:repo] %>"
+            repo : "<%= params[:repo] %>",
+            branch : "<%= params[:branch] %>"
           },
           success: function( data ) {
           	for(var i=0; i<data.length; i++) {

@@ -25,6 +25,7 @@ namespace :one_timers do
 				              }
 				            },
 				            "repo_url" => {"type"=> "string", "index" => "not_analyzed"},
+				            "branch" => {"type" => "string", "index" => "not_analyzed"},
 				            "name"=>{"type"=> "string"},
 				            "body"=>{"type"=> "string"},
 				            "body_preview"=>{"type" => "string"}
@@ -36,6 +37,7 @@ namespace :one_timers do
 			            },
 					        "properties"=>{
 					            "repo_url" => {"type" => "string", "index" => "not_analyzed"},
+					            "branch" => {"type" => "string", "index" => "not_analyzed"},
 					            "path" => {
 					              "type" => "multi_field",
 					              "fields" => {

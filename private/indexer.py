@@ -7,6 +7,9 @@ from pprint import pprint
 from subprocess import call
 from git import Repo
 import re
+import base64
+import json
+import requests
 from pygments import highlight
 from pygments.lexers import get_lexer_for_filename
 from pygments.formatters import HtmlFormatter
@@ -17,6 +20,8 @@ TYPE_NAME_FUNC=sys.argv[3]
 ELASTICSEARCH_URL=sys.argv[4]
 REPO=sys.argv[5]
 PRIVATE_PATH=sys.argv[6]
+BRANCH=sys.argv[7]
+ACCESS_TOKEN=sys.argv[8]
 
 PREVIEW_SIZE = 50
 FULL_SIZE = 20000
@@ -64,11 +69,11 @@ def get_paths(path, repo_url):
 					preview = pygmentize(name, preview)
 				except Exception as e:
 					continue
-			body = {"path":path_name, "name":name, "body":content, "body_preview":  preview, "repo_url" : repo_url }
+			body = {"path":path_name, "name":name, "body":content, "body_preview":  preview, "repo_url" : repo_url, "branch":BRANCH }
 			ret = es.index(index=INDEX_NAME, doc_type=TYPE_NAME, body=body)
 			file_id = ret[u'_id']
 			for function in functions:
-				body = {"function_name":function["function_name"], "line_number":function["line_number"], "path":path_name, "repo_url" : repo_url}
+				body = {"function_name":function["function_name"], "line_number":function["line_number"], "path":path_name, "repo_url" : repo_url, "branch":BRANCH}
 				es.index(index=INDEX_NAME, doc_type=TYPE_NAME_FUNC, body=body, parent=file_id)
 
 def find_function(line):
@@ -83,9 +88,31 @@ def find_function(line):
 		return None
 
 def clone_repo(repo_dir):
-	repo_url = "https://github.com/" + REPO
-	call(["git", "clone", repo_url, repo_dir])
-	shutil.rmtree(repo_dir + "/.git")
+	if ACCESS_TOKEN != "nothing":
+		clone_private_repo(repo_dir, "https://api.github.com/repos/"+ REPO + "/contents?ref=" + BRANCH + "&access_token=" + ACCESS_TOKEN, "dir")
+	else:
+		repo_url = "https://github.com/" + REPO
+		call(["git", "clone", "-b", BRANCH, repo_url, repo_dir])
+		shutil.rmtree(repo_dir + "/.git")
+
+def clone_private_repo(current_path, contents_url, type_path):
+	response = requests.get(contents_url).text
+	response = json.loads(response)
+	if type_path == "file":
+		f = open(current_path, "w")
+		try:
+			f.write(base64.b64decode(response["content"]))
+			f.close()
+		except Exception as e:
+			f.close()
+			os.remove(current_path)
+	else:
+		if not os.path.exists(current_path):
+			os.mkdir(current_path)
+		for file in response:
+			contents_url = "https://api.github.com/repos/" + REPO + "/contents/" + file["path"] + "?ref=" + BRANCH + "&access_token=" + ACCESS_TOKEN
+			clone_private_repo(current_path + "/" + file["name"], contents_url, file["type"])
+
 
 def main():
 	repo_dir = PRIVATE_PATH + "/" + REPO.split("/")[1]

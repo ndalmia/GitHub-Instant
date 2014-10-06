@@ -1,127 +1,28 @@
 class SearchController < ApplicationController
+  before_action :process_repo_param, :only => [:index]
+  before_action :check_if_repo_exist, :only => [:index]
+  before_action :check_if_branch_exist, :only => [:index]
+
   ES_INDEX = "github"
-  ES_TYPE = "repo"
 
   def index
-    repo_url = params[:repo]
-    if repo_url 
-    	if repo_url.include? "github.com"
-      		uri = URI::parse(repo_url)
-      		repo_url = uri.path
-		end
-    	repo_url = repo_url[1..-1] if repo_url[0] == '/'
-    end
-
-    repo = Repo.where(:url => repo_url)
-
-    repo_url ||= "iudhiuhghbyb"
-    url = "https://github.com/"+repo_url
-    uri = URI.parse(url)
-    response = Net::HTTP.get(uri)
-    if response == "{\"error\":\"Not Found\"}"
-      @error = "Repo does not exist"
-      params[:repo] = nil
-    else
-      if repo.first
-        case repo.first.status
-        when "INACTIVE"
-          @status = "INACTIVE"
-        when "ACTIVE"
-          @status = "ACTIVE"
-        end
-      else
-        Resque.enqueue(ESIndexer, repo_url)
+    repo = Repo.where(:url => params[:repo], :branch => params[:branch]).first
+    if repo
+      case repo.status
+      when "INACTIVE"
         @status = "INACTIVE"
+      when "ACTIVE"
+        @status = "ACTIVE"
       end
+    else
+      Resque.enqueue(ESIndexer, params[:repo], params[:branch], @access_token)
+      @status = "INACTIVE"
     end
-  end
-
-  def file
-    repo_url = params[:repo]
-     repo_url = params[:repo]
-    if repo_url 
-    	if repo_url.include? "github.com"
-      		uri = URI::parse(repo_url)
-      		repo_url = uri.path
-		end
-    	repo_url = repo_url[1..-1] if repo_url[0] == '/'
-    end
-    file = params[:file]
-    query = 
-    {
-      "size" => 10,
-      "query"=>{
-          "match" => {
-             "path.untouched" => {
-                 "query" => file,
-                  "operator" => "and"
-             }
-          }
-      },
-     "filter"=> {
-         "and"=> {
-            "filters"=> [
-                {
-                    "term"=>{
-                        "repo_url"=> repo_url
-                    }
-                }
-              ]
-          }
-      },
-      "fields"=> [
-         "name","path","body"
-        ]
-    }
-    results = JSON.parse(query_es(query))
-    response = []
-    results["hits"]["hits"].each do |hit|
-      body = hit["fields"]["body"].first
-      path = hit["fields"]["path"].first
-      filename = hit["fields"]["name"].first
-      functions = []
-      query =
-      {
-         "filter"=> {
-             "and"=> {
-                "filters"=> [
-                    {
-                        "term"=>{
-                            "path"=> file
-                        }
-                    },
-                    {
-                        "term"=>{
-                            "repo_url"=> repo_url
-                        }
-                    }
-                  ]
-              }
-          },
-         "fields"=> [
-           "function_name", "line_number"
-          ]
-      }
-      function_results = JSON.parse(query_es(query))
-      function_results["hits"]["hits"].each do |function_hit|
-        function_name = function_hit["fields"]["function_name"].first
-        line_number = function_hit["fields"]["line_number"].first
-        functions.push({function_name: function_name, line_number: line_number})
-      end
-      response.push({body: body, path: path, filename: filename, functions: functions})
-    end
-    render :json => response
   end
 
   def functions
     repo_url = params[:repo]
-    if repo_url 
-       if repo_url.include? "github.com"
-          uri = URI::parse(repo_url)
-          repo_url = uri.path
-        end
-       repo_url = repo_url[1..-1] if repo_url[0] == '/'
-    end
+    branch = params[:branch]
     query_function_part = params[:query]
     query_file_part = params[:query_file_part]
     query =
@@ -139,6 +40,11 @@ class SearchController < ApplicationController
                   {
                       "term"=>{
                           "repo_url"=> repo_url
+                      }
+                  },
+                  {
+                      "term"=>{
+                          "branch"=> branch
                       }
                   }
                 ]
@@ -175,13 +81,7 @@ class SearchController < ApplicationController
       functions
     else
       repo_url = params[:repo]
-      if repo_url 
-    	   if repo_url.include? "github.com"
-      		  uri = URI::parse(repo_url)
-      		  repo_url = uri.path
-		      end
-    	   repo_url = repo_url[1..-1] if repo_url[0] == '/'
-      end
+      branch = params[:branch]
       query = params[:query]
       query =
       {
@@ -199,6 +99,11 @@ class SearchController < ApplicationController
                       {
                           "term"=>{
                               "repo_url"=> repo_url
+                          }
+                      },
+                      {
+                          "term"=>{
+                              "branch"=> branch
                           }
                       }
                     ]
@@ -231,9 +136,55 @@ class SearchController < ApplicationController
 
   def get_file_from_id(file_id)
     type = "repo"
-    uri = URI.parse("http://"+Figaro.env["es_host"]+":"+Figaro.env["es_port"] + "/"+ES_INDEX+"/"+type+"/"+file_id)
+    uri = URI.parse("http://"+ENV["es_host"]+":"+ENV["es_port"] + "/"+ES_INDEX+"/"+type+"/"+file_id)
     http = Net::HTTP.new(Figaro.env["es_host"],Figaro.env["es_port"])
     request = Net::HTTP::Get.new(uri.request_uri)
     return http.request(request).body
+  end
+
+  def process_repo_param
+    unless params[:repo]
+      render "index.html.erb"
+    else
+      repo_url = params[:repo]
+      if repo_url.include? "github.com"
+        uri = URI::parse(repo_url)
+        repo_url = uri.path
+      end
+      repo_url = repo_url[1..-1] if repo_url[0] == '/'
+      repo_url = repo_url[0..-2] if repo_url[-1] == '/'
+      params[:repo] = repo_url
+    end
+  end
+
+  def check_if_repo_exist
+    repo_url = params[:repo]
+    url = "https://api.github.com/repos/" + repo_url
+    url += "?access_token="+current_user.access_token if current_user
+    uri = URI.parse(url)
+    response = JSON.parse(Net::HTTP.get(uri))
+    if response["message"] == "Not Found"
+      redirect_to :root, :notice => "Repository does not exist."
+    else
+      @access_token = nil
+      @access_token = current_user.access_token if response["private"]
+    end
+  end
+
+  def check_if_branch_exist
+    repo_url = params[:repo]
+    params[:branch] ||= "master"
+    branch = params[:branch]
+    url = "https://api.github.com/repos/" + repo_url + "/branches?ref=" + branch
+    url += "&access_token="+current_user.access_token if current_user
+    uri = URI.parse(url)
+    response = JSON.parse(Net::HTTP.get(uri))
+    message = ""
+    response.each do |res|
+      message = "found" if res["name"] == branch
+    end
+    unless message == "found"
+      redirect_to :root, :notice => "Branch does not exist."
+    end
   end
 end

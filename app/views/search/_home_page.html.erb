@@ -1,7 +1,28 @@
+<nav class="navbar navbar-default navbar-fixed-top">
+  <div class="container">
+    <ul class="nav nav-pills pull-right">
+      <% if current_user %>
+        <a class="btn btn-link" id="welcome">Welcome <%= current_user.username %> !</a>
+        <a href="/logout" id="logout"  class="btn btn-link">Logout</a>
+      <% else %>
+        <a class="btn btn-link" href="/auth/github">Login using GitHub to search in private repositories</a>
+      <% end %>
+    </ul>
+  </div>  
+</nav>
 
-<div id="logo">GitHub Instant</div>
+<% if notice %>
+  <div class="alert" style="margin-top:50px;">
+    <a class="close" data-dismiss="alert">×</a>
+    <p class="notice"><%= notice %></p>
+  </div>
+<% end %>
 
-<form name="git-repo" action="/" method="GET" id="home-page-form">
-		<input type="text" name="repo" id="git-repo-input" placeholder="GitHub Repository Link" required >
-		<input type="submit" class="btn btn-success btn-block" value="Submit" id="git-repo-submit">
-</form>	
+<div style="position:fixed;top:30%;left:13%;right:13%;">
+  <div id="logo">GitHub Instant</div>
+  <form name="git-repo" action="/" method="GET" id="home-page-form">
+  		<input type="text" name="repo" id="git-repo-input" placeholder="GitHub Repository Link" required >
+      <input type="text" name="branch" id="git-branch-input" placeholder="Branch Name">
+  		<input type="submit" class="btn btn-success btn-block" value="Submit" id="git-repo-submit">
+  </form>	
+</div>

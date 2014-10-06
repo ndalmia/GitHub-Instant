@@ -51,3 +51,5 @@ group :assets do
 end
 
 gem "twitter-bootstrap-rails"
+gem "omniauth-github", '1.1.1'
+gem "github_api"
